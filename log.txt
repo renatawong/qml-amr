@@ -1,0 +1,338 @@
+Data used: (data-preprocessing-pipeline.ipynb)
+============ TARGET ============
+ Microbiology phenotype (resistant or not)
+=========== FEATURES ===========
+ Area Deprivation Index
+ Comorbidities - binary flag for each possible comorbidity
+ Age
+ Gender
+ Last Nursing Home Visit
+ Prior Antibiotic Used Corresponding to Order - this ensures we are looking at the positive test if it exists
+ Time Since Antibiotic Used Corresponding to Order
+ Most recent procedure
+ Time since most recent procedure
+ Inpatient?
+ Outpatient?
+ ER?
+ Urgent Care?
+ Day surgery?
+
+From this data, we can get the following metrics: (classical_ml_data_validation.ipynb)
+ Accuracy: 0.8137959939998235
+ Confusion Matrix
+  True negatives: 33472 (0.7383746580781788)
+  False positives: 1592 (0.03511867996117533)
+  False negatives: 6849 (0.15108532603900116)
+  True positives: 3419 (0.07542133592164475)
+
+ 22.65% Positive occurrence rate
+
+==== DATA PREPROCESSING ====
+ Removed rows for which subjects had no listed drug code (unlikely to be useful data anyway)
+ Reduced several ward flags to a single integer encoding
+ PCA to 11 features on comorbidities preserves 80.57402429560702% of information.
+ To 15 features: 81.9202600991625%-npf 81.9202503870941%
+ To 21 features: 83.59505954298974%
+
+==== CML RESULTS ====
+ HistGradientBoostingClassifier: learning_rate=0.01, max_iter=5000
+ Accuracy: 72.77199329392041%
+ Confusion Matrix
+  True negatives: 25428 (0.5609282625959587)
+  False positives: 9636 (0.2125650754433954)
+  False negatives: 2707 (0.059714991617400515)
+  True positives: 7561 (0.16679167034324538)
+ AUROC: 0.8044
+ PRAUC: 0.5768
+
+ hgbc_alpha0.01_maxiter5000_521features
+ Accuracy: 73.4205417806406%
+ Confusion Matrix
+  True negatives: 25540 (0.5633989234977499)
+  False positives: 9524 (0.21009441454160416)
+  False negatives: 2525 (0.05570016765198976)
+  True positives: 7743 (0.17080649430865613)
+ AUROC: 0.8167
+ PRAUC: 0.5950
+
+ hgbc_alpha0.01_maxiter5000_24features_npf
+ Accuracy: 72.7036089296744%
+  True negatives: 25527 (0.5631121503573635)
+  False positives: 9537 (0.21038118768199066)
+  False negatives: 2837 (0.06258272302126533)
+  True positives: 7431 (0.16392393893938056)
+ AUROC: 0.8004
+ PRAUC: 0.5697
+
+ hgbc_alpha0.01_maxiter5000_24features
+ Accuracy: 72.79184681902409%
+ Confusion Matrix
+  True negatives: 25475 (0.5619650577958175)
+  False positives: 9589 (0.21152828024353656)
+  False negatives: 2745 (0.060553251566222537)
+  True positives: 7523 (0.16595341039442338)
+ AUROC: 0.8049
+ PRAUC: 0.5744
+
+ hgbc_alpha0.01_maxiter5000_521features_undersampled
+ Accuracy: 72.74331597988176%
+ Confusion Matrix
+  True negatives: 25305 (0.5582149474984558)
+  False positives: 9759 (0.21527839054089826)
+  False negatives: 2597 (0.057288449660284124)
+  True positives: 7671 (0.16921821230036177)
+ AUROC: 0.8112
+ PRAUC: 0.5848
+
+ hgbc_alpha0.01_maxiter5000_521features_undersampled_5000samples
+  Accuracy: 0.738
+  Confusion Matrix
+   True negatives: 653 (0.653)
+   False positives: 121 (0.121)
+   False negatives: 141 (0.141)
+   True positives: 85 (0.085)
+  AUROC: 0.6892
+  PRAUC: 0.4066
+ hgbc_alpha0.01_maxiter5000_521features_undersampled_10000samples
+  Accuracy: 0.752
+  Confusion Matrix
+   True negatives: 1262 (0.631)
+   False positives: 285 (0.1425)
+   False negatives: 211 (0.1055)
+   True positives: 242 (0.121)
+  AUROC: 0.7421
+  PRAUC: 0.4755
+
+ == RESULTS BY ANTIBIOTIC ==
+  = CIP =
+   CIP_hgbc_alpha0.01_maxiter5000_521features
+    Accuracy: 0.894447223611806
+    Confusion Matrix
+     True negatives: 1170 (0.5852926463231616)
+     False positives: 120 (0.060030015007503754)
+     False negatives: 91 (0.04552276138069034)
+     True positives: 618 (0.3091545772886443)
+    AUROC: 0.9576
+    PRAUC: 0.9329
+   CIP_hgbc_alpha0.01_maxiter5000_521features_undersampled
+    Accuracy: 0.7078539269634817
+    Confusion Matrix
+    True negatives: 957 (0.47873936968484243)
+    False positives: 333 (0.16658329164582292)
+    False negatives: 251 (0.12556278139069535)
+    True positives: 458 (0.22911455727863933)
+    AUROC: 0.7631
+    PRAUC: 0.6428
+   CIP_hgbc_alpha0.01_maxiter5000_521features_oversampled
+    Accuracy: 0.6948474237118559
+    Confusion Matrix
+    True negatives: 843 (0.42171085542771386)
+    False positives: 447 (0.2236118059029515)
+    False negatives: 163 (0.0815407703851926)
+    True positives: 546 (0.27313656828414207)
+    AUROC: 0.7754
+    PRAUC: 0.6169
+  = CRO =
+   CRO_hgbc_alpha0.01_maxiter5000_521features
+    Accuracy: 0.7668531841193712
+    Confusion Matrix
+     True negatives: 2084 (0.555289102051692)
+     False positives: 690 (0.1838529176658673)
+     False negatives: 185 (0.049293898214761524)
+     True positives: 794 (0.21156408206767918)
+    AUROC: 0.8626
+    PRAUC: 0.7128
+   CRO_hgbc_alpha0.01_maxiter5000_521features_oversampled
+    Accuracy: 0.36504130029309884
+    Confusion Matrix
+     True negatives: 485 (0.12922994937383428)
+     False positives: 2289 (0.609912070343725)
+     False negatives: 94 (0.025046629363176125)
+     True positives: 885 (0.23581135091926458)
+    AUROC: 0.6480
+    PRAUC: 0.4795
+   CRO_hgbc_alpha0.01_maxiter5000_521features_undersampled
+    Accuracy: 0.7921662669864109
+    Confusion Matrix
+     True negatives: 2108 (0.5616839861444178)
+     False positives: 666 (0.1774580335731415)
+     False negatives: 114 (0.030375699440447643)
+     True positives: 865 (0.23048228084199307)
+    AUROC: 0.8970
+    PRAUC: 0.7553
+  = CFZ =
+   CFZ_hgbc_alpha0.01_maxiter5000_521features
+    Accuracy: 0.782432010003126
+    Confusion Matrix
+     True negatives: 1974 (0.6170678336980306)
+     False positives: 549 (0.1716161300406377)
+     False negatives: 147 (0.045951859956236324)
+     True positives: 529 (0.16536417630509534)
+    AUROC: 0.8685
+    PRAUC: 0.6927
+   CFZ_hgbc_alpha0.01_maxiter5000_521features_oversampled
+    Accuracy: 0.5270396999062207
+    Confusion Matrix
+     True negatives: 1073 (0.3354173179118475)
+     False positives: 1450 (0.45326664582682086)
+     False negatives: 63 (0.019693654266958426)
+     True positives: 613 (0.19162238199437323)
+    AUROC: 0.8044
+    PRAUC: 0.5498
+   CFZ_hgbc_alpha0.01_maxiter5000_521features_undersampled
+    Accuracy: 0.7896217567989997
+    Confusion Matrix
+     True negatives: 1923 (0.6011253516723977)
+     False positives: 600 (0.1875586120662707)
+     False negatives: 73 (0.022819631134729602)
+     True positives: 603 (0.18849640512660207)
+    AUROC: 0.9043
+    PRAUC: 0.7128
+   CFZ_hgbc_alpha0.01_maxiter5000_11features
+    Accuracy: 0.7461706783369803
+    Confusion Matrix
+     True negatives: 1894 (0.5920600187558612)
+     False positives: 629 (0.19662394498280714)
+     False negatives: 183 (0.05720537668021257)
+     True positives: 493 (0.1541106595811191)
+    AUROC: 0.8248
+    PRAUC: 0.5908
+   CFZ_hgbc_alpha0.01_maxiter5000_11features_undersampled
+    Accuracy: 0.22006877149109097
+    Confusion Matrix
+     True negatives: 28 (0.0087527352297593)
+     False positives: 2495 (0.7799312285089091)
+     False negatives: 0 (0.0)
+     True positives: 676 (0.21131603626133166)
+    AUROC: 0.6385
+    PRAUC: 0.3195
+   CFZ_hgbc_alpha0.01_maxiter5000_11features_oversampled
+    Accuracy: 0.5792435135979994
+    Confusion Matrix
+     True negatives: 1609 (0.5029696780243826)
+     False positives: 914 (0.2857142857142857)
+     False negatives: 432 (0.13504220068771491)
+     True positives: 244 (0.07627383557361675)
+    AUROC: 0.5009
+    PRAUC: 0.2053
+  = AZM =
+   AZM_hgbc_alpha0.01_maxiter5000_521features
+    Accuracy: 0.9110499770747363
+    Confusion Matrix
+     True negatives: 1566 (0.7180192572214581)
+     False positives: 146 (0.06694176983035305)
+     False negatives: 48 (0.02200825309491059)
+     True positives: 421 (0.19303071985327833)
+    AUROC: 0.9598
+    PRAUC: 0.9007
+   AZM_hgbc_alpha0.01_maxiter5000_521features_oversampled
+    Accuracy: 0.7615772581384685
+    Confusion Matrix
+     True negatives: 1385 (0.6350298028427327)
+     False positives: 327 (0.1499312242090784)
+     False negatives: 193 (0.088491517652453)
+     True positives: 276 (0.1265474552957359)
+    AUROC: 0.7939
+    PRAUC: 0.5063
+   AZM_hgbc_alpha0.01_maxiter5000_521features_undersampled
+    Accuracy: 0.7441540577716643
+    Confusion Matrix
+     True negatives: 1224 (0.5612104539202201)
+     False positives: 488 (0.22375057313159102)
+     False negatives: 70 (0.03209536909674461)
+     True positives: 399 (0.1829436038514443)
+    AUROC: 0.8634
+    PRAUC: 0.6420
+==== QML RESULTS ====
+ Feature reduction (PCA) to 512 features after encoding NA as -99999 (out of range for all features)
+ Train on subset of data for time considerations (order of 1000 subjects) - can run training on multiple subsets if necessary with hot starts
+ Efficient SU2 ansatz results statistics:
+ Quantum VQC on the training dataset: 0.74
+ Quantum VQC on the test dataset:     0.73
+ Confusion Matrix:
+  True negatives: 726 (0.726)
+  False positives: 48 (0.048)
+  False negatives: 220 (0.22)
+  True positives: 6 (0.006)
+ Real Amplitudes ansatz results statistics:
+ Quantum VQC on the training dataset: 0.76
+ Quantum VQC on the test dataset:     0.75
+
+ 20features_5000samples_efficientsu2map_realamplitudes3reps
+ Note: 2 training sessions (10000 total samples)
+ Test accuracy: 0.7634
+ Train accuracy: 0.758825
+ Confusion Matrix
+  True negatives: 7066 (0.7066)
+  False positives: 669 (0.0669)
+  False negatives: 1697 (0.1697)
+  True positives: 568 (0.0568)
+ AUROC: 0.6160
+ PRAUC: 0.3515
+
+ 30features_efficientsu2map_realamplitudes3reps
+ Note: used 3 reps on efficientsu2 map - I think this was the problem for us
+ Train Accuracy: 0.69
+ Test accuracy:  0.69
+ Confusion Matrix
+  True negatives: 6301 (0.6301)
+  False positives: 1434 (0.1434)
+  False negatives: 1633 (0.1633)
+  True positives: 632 (0.0632)
+ AUROC: 0.5938
+ PRAUC: 0.2878
+
+ 20features_efficientsu2map_realamplitudes3reps_npf
+ Note: 2 training sessions (10000 total samples)
+ Test accuracy: 0.7545
+ Train accuracy: 0.7582
+ Confusion Matrix
+  True negatives: 7003 (0.7003)
+  False positives: 732 (0.0732)
+  False negatives: 1723 (0.1723)
+  True positives: 542 (0.0542)
+ AUROC: 0.6070
+ PRAUC: 0.3465
+
+ 24features_efficientsu2map_realamplitudes3reps_undersampled
+ Test accuracy: 0.504
+ Train accuracy: 0.51135
+ Confusion Matrix
+  True negatives: 3917 (0.3917)
+  False positives: 3818 (0.3818)
+  False negatives: 1142 (0.1142)
+  True positives: 1123 (0.1123)
+ AUROC: 0.5050
+ PRAUC: 0.2336
+ 20features_efficientsu2map_realamplitudes3reps_undersampled
+  Notes: Undersampling to balance the dataset completely killed its performance on normal data. 
+    While this wasn't as big a problem for CML, it was a huge problem for QML. 
+    Perhaps this made it so the model could not generalize?
+  Test accuracy: 0.4829
+  Train accuracy: 0.48075
+  Confusion Matrix
+   True negatives: 3750 (0.375)
+   False positives: 3985 (0.3985)
+   False negatives: 1186 (0.1186)
+   True positives: 1079 (0.1079)
+  AUROC: 0.4745
+  PRAUC: 0.2124
+
+==== NOTES ====
+I tried using Aer's sampler, but the results were terrible. Noise issues?
+
+==== TODO ====
+ ~~Test Deep Angle encoding~~ Worked!
+ ~~Use AUROC & PRAUC to get better metrics for QML models~~ Worked!
+ ~~Should we switch from trying to see if we can get a really good model to comparing performance?~~ - Yes
+ ~~Switch over to many models, each for one of the antibiotics?~~ - Yes
+    ~~Combine with above to adjust the research question to as follows: "Are there antibiotics for which classical models outperform quantum models, and in what ways?"~~ - Yes
+ ~~SHAP values to determine features of importance?~~ - Yes
+ ~~SMOTE~~ - Try first
+==== ATTENDANCE LOG ====
+ 21 Jul (Tu) - 12:14-18:20
+ 22 Jul (We) - 09:28-15:35
+ 23 Jul (Th) - 10:20-16:21
+ 28 Jul (Tu) - 09:31-15:35
+ 29 Jul (We) - 09:52-15:50
+ 30 Jul (Th) - 10:50-16:51
