@@ -101,11 +101,14 @@ if QUANTUM:
     with open(f"QShapley/{DRUG}.sav", "wb") as f:
         pickle.dump(shapley, f)
 else:
-    with open(f"CShapley/{DRUG}.sav", "wb") as f:
+    code = f"CShapley/{DRUG}"
+    if REDUCED:
+        code += "_reduced"
+    with open(f"{code}.sav", "wb") as f:
         pickle.dump(shapley, f)
 if VERBOSE:
     print("Saved to file! (6/6)")
-    shap.plots.beeswarm(shapley, max_display=20)
+    shap.plots.beeswarm(shapley[:,:,1], max_display=15)
 
 
 # In[ ]:
