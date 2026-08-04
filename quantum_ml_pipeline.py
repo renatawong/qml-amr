@@ -10,6 +10,7 @@ parser.add_argument("-u", "--undersample", type=bool, default=False, help="Under
 parser.add_argument("-o", "--oversample", type=bool, default=False, help="Oversample using Imbalanced Learn?")
 parser.add_argument("-c", "--count", type=int, default=5000, help="Number of samples in resample")
 parser.add_argument("-f", "--featuremap", type=str, default="efficientsu2", help="Which featuremap to use?")
+parser.add_argument("-t", "--continuetraining", type=bool, default=False, help="Continue model training?")
 parser.add_argument("--debug", type=bool, default=False, help="Show all debug print statements?")
 parser.add_argument("-v", "--verbose", type=bool, default=False, help="Show verbose status messages?")
 
@@ -45,7 +46,7 @@ RESAMPLE = args.resample
 SAMPLES = args.count
 OVERSAMPLE = args.oversample
 UNDERSAMPLE = args.undersample
-CONTINUE_TRAINING = False
+CONTINUE_TRAINING = args.continuetraining
 if OVERSAMPLE and UNDERSAMPLE:
     raise ValueError("You cannot both oversample and undersample!")
 
