@@ -336,3 +336,4 @@ I tried using Aer's sampler, but the results were terrible. Noise issues?
  28 Jul (Tu) - 09:31-15:35
  29 Jul (We) - 09:52-15:50
  30 Jul (Th) - 10:50-16:51
+ 03 Aug (Tu) - 10:15-
