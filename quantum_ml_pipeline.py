@@ -2,6 +2,7 @@
 # coding: utf-8
 import argparse
 from curses import raw
+from os import device_encoding
 parser = argparse.ArgumentParser(description="Quantum ML pipeline for learning antimicrobial resistance on patient EHR")
 parser.add_argument("-d", "--drug", type=str, help="Drug code to learn on")
 parser.add_argument("-s", "--autosave", type=bool, default=True, help="Save to file with the model code?")
@@ -11,6 +12,7 @@ parser.add_argument("-o", "--oversample", type=bool, default=False, help="Oversa
 parser.add_argument("-c", "--count", type=int, default=5000, help="Number of samples in resample")
 parser.add_argument("-f", "--featuremap", type=str, default="efficientsu2", help="Which featuremap to use?")
 parser.add_argument("-t", "--continuetraining", type=bool, default=False, help="Continue model training?")
+parser.add_argument("-g", "--gpuaccel", type=bool, default=False, help="Use a GPU accelerated sampler?")
 parser.add_argument("--debug", type=bool, default=False, help="Show all debug print statements?")
 parser.add_argument("-v", "--verbose", type=bool, default=False, help="Show verbose status messages?")
 
@@ -25,8 +27,10 @@ import pandas as pd
 FEATURE_MAP = args.featuremap
 if FEATURE_MAP == "amplitude":
     dataset = pd.read_csv(f"dataset/by_antibiotic/{args.drug}.csv")
+    features = 512
 else:
     dataset = pd.read_csv(f"dataset/by_antibiotic_12comorbdims/{args.drug}.csv")
+    features = 20
 if VERBOSE:
     print("loaded dataset! (1/9)")
 
@@ -41,7 +45,7 @@ if DEBUG:
 
 
 AUTO_SAVE = args.autosave
-MODEL_CODE = f"{args.drug}_20features_{FEATURE_MAP}map_realamplitudes3reps"
+MODEL_CODE = f"{args.drug}_{features}features_{FEATURE_MAP}map_realamplitudes3reps"
 RESAMPLE = args.resample
 SAMPLES = args.count
 OVERSAMPLE = args.oversample
@@ -57,7 +61,10 @@ if OVERSAMPLE:
 if UNDERSAMPLE:
     MODEL_CODE += "_undersampled"
 
+GPU_ACCEL = args.gpuaccel
 
+if GPU_ACCEL:
+    MODEL_CODE += "_gpu"
 
 # In[ ]:
 
@@ -82,8 +89,11 @@ if OVERSAMPLE:
 # )
 
 encoder = OrdinalEncoder()
-X = dataset.drop(columns=["anon_id","order_time_jittered_utc_shifted","resistant", 'Unnamed: 0']).fillna(-9999999).astype(str)
+X = dataset.drop(columns=["anon_id","order_time_jittered_utc_shifted","resistant", 'Unnamed: 0'])
+if features == 512:
+    X = X.drop(columns=['Unnamed: 0.3', 'Unnamed: 0.2', 'Unnamed: 0.1'])
 
+X = X.fillna(-9999999).astype(str)
 # X = pca.fit_transform(X)
 
 y = dataset["resistant"]
@@ -182,8 +192,13 @@ if VERBOSE:
 
 
 from qiskit.primitives import StatevectorSampler as Sampler
-
-sampler = Sampler()
+from qiskit_aer.primitives import SamplerV2 as GPUSampler
+from qiskit_aer import AerSimulator
+if GPU_ACCEL:
+    backend = AerSimulator(device="GPU", method="statevector", cuQuantum_enable=True)
+    sampler = GPUSampler(backend=backend)
+else:
+    sampler = Sampler()
 if VERBOSE:
     print("Created sampler! (6/9)")
 

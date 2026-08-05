@@ -320,6 +320,7 @@ From this data, we can get the following metrics: (classical_ml_data_validation.
 
 ==== NOTES ====
 I tried using Aer's sampler, but the results were terrible. Noise issues?
+  Unlikely to be the Aer sampler, problem persists for statevectorsampler. Why?
 
 ==== TODO ====
  ~~Test Deep Angle encoding~~ Worked!
@@ -329,6 +330,11 @@ I tried using Aer's sampler, but the results were terrible. Noise issues?
     ~~Combine with above to adjust the research question to as follows: "Are there antibiotics for which classical models outperform quantum models, and in what ways?"~~ - Yes
  ~~SHAP values to determine features of importance?~~ - Yes
  ~~SMOTE~~ - Try first
+ Very poor performance on per antibiotic set, even after retraining for 100 more iterations. Will try various options.
+  quantum random forest model?
+  try different feature maps, ansatz
+    try more qubits on the big machine?
+
 ==== ATTENDANCE LOG ====
  21 Jul (Tu) - 12:14-18:20
  22 Jul (We) - 09:28-15:35
@@ -336,4 +342,5 @@ I tried using Aer's sampler, but the results were terrible. Noise issues?
  28 Jul (Tu) - 09:31-15:35
  29 Jul (We) - 09:52-15:50
  30 Jul (Th) - 10:50-16:51
- 03 Aug (Tu) - 10:15-
+ 04 Aug (Tu) - 10:15-16:45
+ 05 AUg (We) - 10:20
