@@ -319,7 +319,7 @@ From this data, we can get the following metrics: (classical_ml_data_validation.
   PRAUC: 0.2124
 
 ==== NOTES ====
-I tried using Aer's sampler, but the results were terrible. Noise issues?
+ I tried using Aer's sampler, but the results were terrible. Noise issues?
   Unlikely to be the Aer sampler, problem persists for statevectorsampler. Why?
 
 ==== TODO ====
