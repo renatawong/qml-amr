@@ -1,7 +1,7 @@
 import subprocess
 import os
 
-for filename in os.listdir("dataset/by_antibiotic_11comorbdims"):
+for filename in os.listdir("dataset/by_antibiotic_12comorbdims"):
 
     drug = filename.replace(".csv", "")
     raw = subprocess.run(f"python ./quantum_ml_pipeline.py -d {drug}", shell=True, capture_output=True, text=True).stdout.strip()

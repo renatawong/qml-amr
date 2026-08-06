@@ -71,16 +71,19 @@ if GPU_ACCEL:
 
 import numpy as np
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import OrdinalEncoder
+from sklearn.preprocessing import OrdinalEncoder, MinMaxScaler
 from sklearn.decomposition import PCA
 from imblearn.under_sampling import RandomUnderSampler
 from imblearn.over_sampling import SMOTENC
 from sklearn.utils import resample
+from sklearn.compose import ColumnTransformer
+scaler = MinMaxScaler(feature_range=(-np.pi, np.pi))
+cat_cols = list(dataset.drop(columns=['Unnamed: 0', 'anon_id','order_time_jittered_utc_shifted', 'resistant','adi_score','nursing_home_visit_culture', 'last_dose_to_culture','procedure_days_culture']).columns)
 if UNDERSAMPLE:
     rs = RandomUnderSampler(sampling_strategy=1)
 
 if OVERSAMPLE:
-    cat_cols = list(dataset.drop(columns=['Unnamed: 0', 'anon_id','order_time_jittered_utc_shifted', 'resistant','adi_score','nursing_home_visit_culture', 'last_dose_to_culture','procedure_days_culture']).columns)
+    
     rs = SMOTENC(categorical_features=cat_cols, sampling_strategy=1)
 
 
@@ -88,22 +91,29 @@ if OVERSAMPLE:
 #     PCA(n_components=9)
 # )
 
-encoder = OrdinalEncoder()
 X = dataset.drop(columns=["anon_id","order_time_jittered_utc_shifted","resistant", 'Unnamed: 0'])
 if features == 512:
     X = X.drop(columns=['Unnamed: 0.3', 'Unnamed: 0.2', 'Unnamed: 0.1'])
 
-X = X.fillna(-9999999).astype(str)
+X = X.fillna(-9999999)
 # X = pca.fit_transform(X)
 
 y = dataset["resistant"]
 
+encoder = ColumnTransformer(
+    transformers=[('ordinal', OrdinalEncoder(), cat_cols)],
+    remainder='passthrough' 
+)
+
 if OVERSAMPLE or UNDERSAMPLE:
-    X_rs, y_rs = rs.fit_resample(X, y)
+    X_rs, y_rs = rs.fit_resample(X.astype(str), y)
     y_rs = y_rs.to_numpy()
     X_rs = encoder.fit_transform(X_rs)
 
+
+
 X = encoder.fit_transform(X)
+X = scaler.fit_transform(X)
 
 # X = np.nan_to_num(X, -9999999)
 
@@ -113,15 +123,15 @@ y=y.to_numpy()
 
 
 if RESAMPLE:
-    X, y = resample(X, y, n_samples=SAMPLES, replace=False, stratify=y)
+    X, y = resample(X, y, n_samples=SAMPLES, replace=False, stratify=y, random_state=42)
     if OVERSAMPLE or UNDERSAMPLE:
-        X_rs, y_rs = resample(X_rs, y_rs, n_samples=SAMPLES, replace=False, stratify=y_rs)
+        X_rs, y_rs = resample(X_rs, y_rs, n_samples=SAMPLES, replace=False, stratify=y_rs, random_state=42)
 
 if OVERSAMPLE or UNDERSAMPLE:
-    X_train, X_test, y_train, y_test = train_test_split(X_rs, y_rs, test_size=0.2, stratify=y_rs)
+    X_train, X_test, y_train, y_test = train_test_split(X_rs, y_rs, test_size=0.2, stratify=y_rs, random_state=42)
 else:
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y)
-X_train_us, X_test_us, y_train_us, y_test_us = train_test_split(X, y, test_size=0.2, stratify=y)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)
+X_train_us, X_test_us, y_train_us, y_test_us = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)
 if VERBOSE:
     print("Completed data preparation (including over/undersampling if applicable) (2/9)")
 

@@ -343,4 +343,5 @@ From this data, we can get the following metrics: (classical_ml_data_validation.
  29 Jul (We) - 09:52-15:50
  30 Jul (Th) - 10:50-16:51
  04 Aug (Tu) - 10:15-16:45
- 05 AUg (We) - 10:20
+ 05 Aug (We) - 10:20-16:40
+ 06 Aug (Th) - 10:30-

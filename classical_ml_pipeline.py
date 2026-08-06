@@ -9,6 +9,7 @@ parser.add_argument("-u", "--undersample", type=bool, default=False, help="Under
 parser.add_argument("-o", "--oversample", type=bool, default=False, help="Oversample using Imbalanced Learn?")
 parser.add_argument("-c", "--count", type=int, default=5000, help="Number of samples in resample")
 parser.add_argument("--reduce", type=bool, default=False, help="Use the reduced comorbidity dimensionality dataset?")
+parser.add_argument("--dup", type=bool, default=False, help="Use duplicate patients?")
 parser.add_argument("--debug", type=bool, default=False, help="Show all debug print statements?")
 parser.add_argument("-v", "--verbose", type=bool, default=False, help="Show verbose status messages?")
 
@@ -21,11 +22,13 @@ DEBUG = args.debug
 
 
 import pandas as pd
-
+dataset_code = f"dataset/by_antibiotic"
 if args.reduce:
-    dataset = pd.read_csv(f"dataset/by_antibiotic_12comorbdims/{args.drug}.csv")
-else:
-    dataset = pd.read_csv(f"dataset/by_antibiotic/{args.drug}.csv")
+    dataset_code += "_12comorbdims"
+if args.dup:
+    dataset_code += "_dup"
+dataset = pd.read_csv(f"{dataset_code}/{args.drug}.csv")
+
 if VERBOSE:
     print("loaded dataset! (1/6)")
 # In[34]:
@@ -57,17 +60,18 @@ if OVERSAMPLE:
     MODEL_CODE += "_oversampled"
 if UNDERSAMPLE:
     MODEL_CODE += "_undersampled"
-
+if args.dup:
+    MODEL_CODE += "_dup"
 
 # In[36]:
 
-
-from sklearn.preprocessing import StandardScaler
+import numpy as np
+from sklearn.preprocessing import MinMaxScaler
 from sklearn.pipeline import make_pipeline
 from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.svm import SVC
 
-clf = make_pipeline(StandardScaler(), HistGradientBoostingClassifier(learning_rate=0.01, max_iter=5000,class_weight="balanced"))
+clf = make_pipeline(MinMaxScaler(feature_range=(-np.pi, np.pi)), HistGradientBoostingClassifier(learning_rate=0.01, max_iter=5000,class_weight="balanced"))
 # clf = make_pipeline(StandardScaler(), SVC(gamma="auto",class_weight="balanced"))
 
 if VERBOSE:
@@ -75,21 +79,26 @@ if VERBOSE:
 # In[37]:
 
 
-import numpy as np
+
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OrdinalEncoder
 from sklearn.decomposition import PCA
 from imblearn.under_sampling import RandomUnderSampler
 from imblearn.over_sampling import SMOTENC
 from sklearn.utils import resample
+from sklearn.compose import ColumnTransformer
 if UNDERSAMPLE:
     rs = RandomUnderSampler(sampling_strategy=1)
+if args.reduce:
+    cat_cols = ['age', 'gender', 'procedure_description','wards_int']
+else:
+    cat_cols = list(dataset.drop(columns=['Unnamed: 0.1', 'Unnamed: 0', 'anon_id','order_time_jittered_utc_shifted', 'resistant','adi_score','nursing_home_visit_culture', 'last_dose_to_culture','procedure_days_culture']).columns)
+enc_cat_cols = ["age", "gender", "procedure_description"]
 
+if DEBUG:
+    print(enc_cat_cols)
+    print(dataset[enc_cat_cols].dtypes)
 if OVERSAMPLE:
-    if args.reduce:
-        cat_cols = ['age', 'gender', 'procedure_description','wards_int']
-    else:
-        cat_cols = list(dataset.drop(columns=['Unnamed: 0.3', 'Unnamed: 0.2', 'Unnamed: 0.1', 'Unnamed: 0', 'anon_id','order_time_jittered_utc_shifted', 'resistant','adi_score','nursing_home_visit_culture', 'last_dose_to_culture','procedure_days_culture']).columns)
     if DEBUG:
         print(cat_cols)
     rs = SMOTENC(categorical_features=cat_cols, sampling_strategy=1)
@@ -99,18 +108,23 @@ if OVERSAMPLE:
 #     PCA(n_components=9)
 # )
 
-encoder = OrdinalEncoder()
+encoder = ColumnTransformer(
+    transformers=[('ordinal', OrdinalEncoder(), enc_cat_cols)],
+    remainder='passthrough' 
+)
 if args.reduce:
-    X = dataset.drop(columns=["anon_id","order_time_jittered_utc_shifted","resistant",'Unnamed: 0']).fillna(-9999999).astype(str)
+    X = dataset.drop(columns=["anon_id","order_time_jittered_utc_shifted","resistant",'Unnamed: 0']).fillna(-9999999)
 else:
-    X = dataset.drop(columns=["anon_id","order_time_jittered_utc_shifted","resistant",'Unnamed: 0.3', 'Unnamed: 0.2', 'Unnamed: 0.1', 'Unnamed: 0']).fillna(-9999999).astype(str)
+    X = dataset.drop(columns=["anon_id","order_time_jittered_utc_shifted","resistant",'Unnamed: 0.1', 'Unnamed: 0']).fillna(-9999999)
 
 # X = pca.fit_transform(X)
 
 y = dataset["resistant"]
 
+X[enc_cat_cols] = X[enc_cat_cols].astype(str)
+
 if OVERSAMPLE or UNDERSAMPLE:
-    X_rs, y_rs = rs.fit_resample(X, y)
+    X_rs, y_rs = rs.fit_resample(X.astype(str), y)
     y_rs = y_rs.to_numpy()
     X_rs = encoder.fit_transform(X_rs)
 
@@ -124,15 +138,15 @@ y=y.to_numpy()
 
 
 if RESAMPLE:
-    X, y = resample(X, y, n_samples=SAMPLES, replace=False, stratify=y)
+    X, y = resample(X, y, n_samples=SAMPLES, replace=False, stratify=y, random_state=42)
     if OVERSAMPLE or UNDERSAMPLE:
-        X_rs, y_rs = resample(X_rs, y_rs, n_samples=SAMPLES, replace=False, stratify=y_rs)
+        X_rs, y_rs = resample(X_rs, y_rs, n_samples=SAMPLES, replace=False, stratify=y_rs, random_state=42)
 
 if OVERSAMPLE or UNDERSAMPLE:
-    X_train, X_test, y_train, y_test = train_test_split(X_rs, y_rs, test_size=0.2, stratify=y_rs)
+    X_train, X_test, y_train, y_test = train_test_split(X_rs, y_rs, test_size=0.2, stratify=y_rs, random_state=42)
 else:
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y)
-X_train_us, X_test_us, y_train_us, y_test_us = train_test_split(X, y, test_size=0.2, stratify=y)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)
+X_train_us, X_test_us, y_train_us, y_test_us = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)
 
 if VERBOSE:
     print("Completed data preparation (including over/undersampling if applicable) (3/6)")

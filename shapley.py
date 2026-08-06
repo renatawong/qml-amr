@@ -30,8 +30,8 @@ from sklearn.preprocessing import OrdinalEncoder
 from sklearn.decomposition import PCA
 from sklearn.pipeline import make_pipeline
 import pandas as pd
-from sklearn.preprocessing import StandardScaler
-scaler = StandardScaler()
+from sklearn.preprocessing import MinMaxScaler
+scaler = MinMaxScaler(feature_range=(-np.pi, np.pi))
 
 if REDUCED:
     dataset = pd.read_csv(f"dataset/by_antibiotic_12comorbdims/{DRUG}.csv")
@@ -56,7 +56,7 @@ X = scaler.fit_transform(X, y)
 #print(X.shape)
 # X, y = resample(X, y, n_samples=50000, replace=False, stratify=y)
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)
 #print(X_test.shape, X_train.shape)
 if VERBOSE:
     print("Loaded dataset! (1/6)")
