@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 import argparse
-from curses import raw
-from os import device_encoding
 parser = argparse.ArgumentParser(description="Quantum ML pipeline for learning antimicrobial resistance on patient EHR")
 parser.add_argument("-d", "--drug", type=str, help="Drug code to learn on")
 parser.add_argument("-s", "--autosave", type=bool, default=True, help="Save to file with the model code?")
