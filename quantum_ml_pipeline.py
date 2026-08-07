@@ -13,6 +13,7 @@ parser.add_argument("-c", "--count", type=int, default=5000, help="Number of sam
 parser.add_argument("-f", "--featuremap", type=str, default="efficientsu2", help="Which featuremap to use?")
 parser.add_argument("-t", "--continuetraining", type=bool, default=False, help="Continue model training?")
 parser.add_argument("-g", "--gpuaccel", type=bool, default=False, help="Use a GPU accelerated sampler?")
+parser.add_argument("--dup", type=bool, default=False, help="Use duplicate patients?")
 parser.add_argument("--debug", type=bool, default=False, help="Show all debug print statements?")
 parser.add_argument("-v", "--verbose", type=bool, default=False, help="Show verbose status messages?")
 
@@ -25,12 +26,16 @@ DEBUG = args.debug
 
 import pandas as pd
 FEATURE_MAP = args.featuremap
-if FEATURE_MAP == "amplitude":
-    dataset = pd.read_csv(f"dataset/by_antibiotic/{args.drug}.csv")
-    features = 512
-else:
-    dataset = pd.read_csv(f"dataset/by_antibiotic_12comorbdims/{args.drug}.csv")
+dataset_code = f"dataset/by_antibiotic"
+if FEATURE_MAP != "amplitude":
+    dataset_code += "_12comorbdims"
     features = 20
+else:
+    features = 521
+if args.dup:
+    dataset_code += "_dup"
+dataset = pd.read_csv(f"{dataset_code}/{args.drug}.csv")
+
 if VERBOSE:
     print("loaded dataset! (1/9)")
 
@@ -61,11 +66,14 @@ if OVERSAMPLE:
 if UNDERSAMPLE:
     MODEL_CODE += "_undersampled"
 
+
 GPU_ACCEL = args.gpuaccel
 
 if GPU_ACCEL:
     MODEL_CODE += "_gpu"
 
+if args.dup:
+    MODEL_CODE += "_dup"
 # In[ ]:
 
 
@@ -86,7 +94,7 @@ if OVERSAMPLE:
     
     rs = SMOTENC(categorical_features=cat_cols, sampling_strategy=1)
 
-
+enc_cat_cols = ["age", "gender", "procedure_description"]
 # pca = make_pipeline(
 #     PCA(n_components=9)
 # )
@@ -94,14 +102,14 @@ if OVERSAMPLE:
 X = dataset.drop(columns=["anon_id","order_time_jittered_utc_shifted","resistant", 'Unnamed: 0'])
 if features == 512:
     X = X.drop(columns=['Unnamed: 0.3', 'Unnamed: 0.2', 'Unnamed: 0.1'])
-
+X[enc_cat_cols] = X[enc_cat_cols].astype(str)
 X = X.fillna(-9999999)
 # X = pca.fit_transform(X)
 
 y = dataset["resistant"]
 
 encoder = ColumnTransformer(
-    transformers=[('ordinal', OrdinalEncoder(), cat_cols)],
+    transformers=[('ordinal', OrdinalEncoder(), enc_cat_cols)],
     remainder='passthrough' 
 )
 
@@ -205,8 +213,8 @@ from qiskit.primitives import StatevectorSampler as Sampler
 from qiskit_aer.primitives import SamplerV2 as GPUSampler
 from qiskit_aer import AerSimulator
 if GPU_ACCEL:
-    backend = AerSimulator(device="GPU", method="statevector", cuQuantum_enable=True)
-    sampler = GPUSampler(backend=backend)
+    backend = AerSimulator(device="GPU", method="statevector", cuStateVec_enable=True)
+    sampler = GPUSampler.from_backend(backend=backend)
 else:
     sampler = Sampler()
 if VERBOSE:

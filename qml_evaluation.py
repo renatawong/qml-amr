@@ -1,9 +1,14 @@
 #!/usr/bin/env python
 # coding: utf-8
 import argparse
+
+from sklearn.compose import ColumnTransformer
+
 parser = argparse.ArgumentParser(description="Quantum ML evaluation pipeline")
 parser.add_argument("-m", "--model", type=str, help="Model code to load")
 parser.add_argument("-d", "--drug", type=str, help="Drug to load")
+parser.add_argument("--dup", type=bool, default=False, help="Use duplicate patients?")
+parser.add_argument("-a", "--amplitude", type=bool, default=False, help="Used an amplitude feature map?")
 parser.add_argument("-v", "--verbose", type=bool, default=False, help="Show verbose status messages?")
 
 args = parser.parse_args()
@@ -19,32 +24,42 @@ VERBOSE = args.verbose
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.utils import resample
-from sklearn.preprocessing import OrdinalEncoder
+from sklearn.preprocessing import MinMaxScaler, OrdinalEncoder
 from sklearn.decomposition import PCA
 from sklearn.pipeline import make_pipeline
 import pandas as pd
-from sklearn.preprocessing import StandardScaler
-scaler = StandardScaler()
 
-dataset = pd.read_csv(f"dataset/by_antibiotic_12comorbdims/{args.drug}.csv")
+
+DATASET_CODE = f"dataset/by_antibiotic"
+if not args.amplitude:
+    DATASET_CODE += "_12comorbdims"
+if args.dup:
+    DATASET_CODE += "_dup"
+enc_cat_cols = ["age", "gender", "procedure_description"]
+dataset = pd.read_csv(f"{DATASET_CODE}/{args.drug}.csv")
 
 # pca = make_pipeline(
 #     PCA(n_components=10)
 # )
+cat_cols = list(dataset.drop(columns=['Unnamed: 0', 'anon_id','order_time_jittered_utc_shifted', 'resistant','adi_score','nursing_home_visit_culture', 'last_dose_to_culture','procedure_days_culture']).columns)
+scaler = MinMaxScaler(feature_range=(-np.pi, np.pi))
 
-encoder = OrdinalEncoder()
-X = dataset.drop(columns=["anon_id","order_time_jittered_utc_shifted","resistant","Unnamed: 0"])
+encoder = ColumnTransformer(
+    transformers=[('ordinal', OrdinalEncoder(), enc_cat_cols)],
+    remainder='passthrough' 
+)
+X = dataset.drop(columns=["anon_id","order_time_jittered_utc_shifted","resistant","Unnamed: 0"]).fillna(-9999999)
+X[enc_cat_cols] = X[enc_cat_cols].astype(str)
 X = encoder.fit_transform(X)
-X = np.nan_to_num(X, nan=-99999)
 # X = pca.fit_transform(X)
 
 y = dataset["resistant"].to_numpy()
 
 
-X = scaler.fit_transform(X, y)
+X = scaler.fit_transform(X)
 # X, y = resample(X, y, n_samples=50000, replace=False, stratify=y)
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)
 
 
 # In[25]:
