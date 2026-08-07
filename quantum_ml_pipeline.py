@@ -102,8 +102,9 @@ enc_cat_cols = ["age", "gender", "procedure_description"]
 X = dataset.drop(columns=["anon_id","order_time_jittered_utc_shifted","resistant", 'Unnamed: 0'])
 if features == 512:
     X = X.drop(columns=['Unnamed: 0.3', 'Unnamed: 0.2', 'Unnamed: 0.1'])
-X[enc_cat_cols] = X[enc_cat_cols].astype(str)
 X = X.fillna(-9999999)
+X[enc_cat_cols] = X[enc_cat_cols].astype(str)
+
 # X = pca.fit_transform(X)
 
 y = dataset["resistant"]
