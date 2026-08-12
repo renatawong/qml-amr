@@ -103,6 +103,7 @@ if features == 512:
 X = X.fillna(-9999999)
 X[enc_cat_cols] = X[enc_cat_cols].astype(str)
 
+
 # X = pca.fit_transform(X)
 
 y = dataset["resistant"]
@@ -113,9 +114,12 @@ encoder = ColumnTransformer(
 )
 
 if OVERSAMPLE or UNDERSAMPLE:
-    X_rs, y_rs = rs.fit_resample(X.astype(str), y)
+    X_ = X.copy()
+    X_[cat_cols] = X_[cat_cols].astype(str)
+    X_rs, y_rs = rs.fit_resample(X_, y)
     y_rs = y_rs.to_numpy()
     X_rs = encoder.fit_transform(X_rs)
+    X_rs = scaler.fit_transform(X_rs)
 
 
 
