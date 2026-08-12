@@ -5,7 +5,7 @@ parser = argparse.ArgumentParser(description="Quantum ML pipeline for learning a
 parser.add_argument("-g", "--gpuaccel", type=bool, default=False, help="Use a GPU accelerated sampler?")
 parser.add_argument("-s", "--shortlist", type=bool, default=False, help="Use a drug shortlist? Leave unset to use all.")
 
-shortlist = ["DAP.csv", "ETP.csv", "FOF.csv"]
+shortlist = ['AMP.csv', 'CFR.csv', 'CXM.csv', 'FOF.csv', 'GEN.csv', 'LZD.csv', 'MFG.csv', 'MIN.csv', 'PEN.csv']
 
 args = parser.parse_args()
 

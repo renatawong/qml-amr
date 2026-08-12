@@ -344,4 +344,7 @@ From this data, we can get the following metrics: (classical_ml_data_validation.
  30 Jul (Th) - 10:50-16:51
  04 Aug (Tu) - 10:15-16:45
  05 Aug (We) - 10:20-16:40
- 06 Aug (Th) - 10:30-
+ 06 Aug (Th) - 10:30-15:20
+ 10 Aug (Mo) - QC workshop @ NTU
+ 11 Aug (Tu) - QC workshop @ NTU
+ 12 Aug (We) - 09:50-
