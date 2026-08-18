@@ -1,5 +1,5 @@
 #import "@preview/arkheion:0.1.2": arkheion, arkheion-appendices
-
+#set text(font: "Linux Libertine", size: 12pt)
 #show: arkheion.with(
   title: "QML for detecting AMR from EHR",
   authors: (
@@ -21,7 +21,98 @@ We want to contribute to the literature around the efficacy of quantum machine l
 \
 We also want to use a practical application of shapley values for qml. This has been done for other applications in medicine @pggn_qml_shap but we want to see how each feature impacts the result for EHRs. This has serious implications for social factors of disease prevention, as it would be possible to identify which specific aspects of a patient's health record contribute most to an identification of antimicrobial-resistant bacteria and allow public health policy makers to pre-emptively support people in communities or areas that may be most at risk. @Cavallaro2022.08.12.22278678 \
 = Methods
-Several features were extracted from the raw dataset. They are Area Deprivation Index (ADI), Age, Gender, time (days) since last nursing home visit, time (days) since last dose of antibiotic, most recent procedure, time (days) since most recent procedure, the type of ward the patient was seen in, and a list of all comorbities each patient had. This totalled 520 features. The dataset was then segregated by antibiotic, and only those antibiotics with subjects between 4500 and 11000 subjects were used, balancing generalizability and size so training could be completed in a reasonable amount of time. \
+Several features were extracted from the raw dataset. They are Area Deprivation Index (ADI), Age, Gender, time (days) since last nursing home visit, time (days) since last dose of antibiotic, most recent procedure, time (days) since most recent procedure, the type of ward the patient was seen in, and a list of all comorbities each patient had. This totalled 520 features. These features were chosen to train models that could be effective given minimally expensive information, not requiring microbiology testing or body sample collection. The dataset was then segregated by antibiotic, and only those antibiotics with subjects between 4500 and 11000 subjects were used (for a total of 9 antibiotics), balancing generalizability and size so training could be completed in a reasonable amount of time. \
+
+// Multi-Antibiotic Machine Learning Pipeline Diagram (Centered, Compact & Non-Overflowing)
+// Requires: #import "@preview/fletcher:0.5.8": diagram, node, edge
+
+#import "@preview/fletcher:0.5.8": diagram, node, edge
+
+
+#set text(font: "Linux Libertine", size: 8pt)
+#box(width:100%,  align(center)[
+  #figure(
+    caption: [End-to-end data processing, resampling, and dual-architecture modeling pipeline.],
+    
+      diagram(
+        node-stroke: 0.6pt + black,
+        edge-stroke: 0.5pt + black,
+        mark-scale: 60%,
+        // Tighter coordinate spacing keeps the total width narrow
+        spacing: (28pt, 16pt), 
+        
+        // --- Data Aggregation & Partitioning ---
+        node((0, 0), [Raw Subject Data], shape: rect),
+        edge((0, 0), (0, 1), "->"),
+        
+        node((0, 1), [*Feature Extraction*], shape: rect),
+        edge((0, 1), (0, 2), "->"),
+        
+        node((0, 2), [*Compiled Master Dataset*], shape: rect, fill: rgb("f4f4f4")),
+        edge((0, 2), (0, 3), "->"),
+        
+        node((0, 3), [*Partition by Target Antibiotic*], shape: rect, fill: rgb("fafafa")),
+        edge((0, 3), (0, 4), "->"),
+        
+        // --- Comorbidity Compression Branching ---
+        node((0, 4), [*Target Antibiotic Dataset*], shape: rect),
+        edge((0, 4), (-1.2, 5), "->"),
+        edge((0, 4), (1.2, 5), "->"),
+        
+        node((-1.2, 5), [Raw Features], shape: rect),
+        node((1.2, 5), [PCA Compressed \ Comorbidities], shape: rect),
+        
+        edge((-1.2, 5), (0, 6), "->"),
+        edge((1.2, 5), (0, 6), "->"),
+        
+        // --- Preprocessing & Split ---
+        node((0, 6), [Preprocessing: Ordinal Encoding \ & Range Scaling ($[-pi, pi]$)], shape: rect),
+        edge((0, 6), (0, 7), "->"),
+        
+        node((0, 7), [Seeded Train-Test Split \ (Tested on raw data & actual balance)], shape: rect),
+        edge((0, 7), (0, 8), "->"),
+        
+        // --- Resampling Strategies ---
+        node((0, 8), [Resampling Strategies], shape: rect, fill: rgb("f0f0f0")),
+        edge((0, 8), (-2.2, 9), "->"),
+        edge((0, 8), (0, 9), "->"),
+        edge((0, 8), (2.2, 9), "->"),
+        
+        node((-2.2, 9), [Raw Imbalanced], shape: rect, fill: rgb("f8f8f8")),
+        node((0, 9), [Undersampled], shape: rect, fill: rgb("f8f8f8")),
+        node((2.2, 9), [SMOTENC Oversampled], shape: rect, fill: rgb("f8f8f8")),
+        
+        // --- Dual Architectures (HistGB & VQC with explicit sizing & tighter spacing) ---
+        // Raw Branch
+        edge((-2.2, 9), (-2.6, 10), "->", layer: -1), edge((-2.2, 9), (-1.8, 10), "->", layer: -1),
+        node((-2.6, 10), [Classical \ (HistGB)], shape: rect),
+        node((-1.8, 10), [Quantum \ (VQC)], shape: rect, fill: white),
+        
+        // Undersampled Branch
+        edge((0, 9), (-0.4, 10), "->", layer: -1), edge((0, 9), (0.4, 10), "->", layer: -1),
+        node((-0.4, 10), [Classical \ (HistGB)], shape: rect ),
+        node((0.4, 10), [Quantum \ (VQC)], shape: rect, fill: white),
+        
+        // SMOTENC Branch
+        edge((2.2, 9), (1.8, 10), "->", layer: -1), edge((2.2, 9), (2.6, 10), "->", layer: -1),
+        node((1.8, 10), [Classical \ (HistGB)], shape: rect, fill: white),
+        node((2.6, 10), [Quantum \ (VQC)], shape: rect, fill:white),
+        
+        // --- Evaluation Convergence ---
+        edge((-2.6, 10), (0, 11), "->"), edge((-1.8, 10), (0, 11), "->"),
+        edge((-0.4, 10), (0, 11), "->"), edge((0.4, 10), (0, 11), "->"),
+        edge((1.8, 10), (0, 11), "->"), edge((2.6, 10), (0, 11), "->"),
+        
+        node((0, 11), [Model Evaluation \ (Accuracy, AUROC, PRAUC)], shape: rect),
+        edge((0, 11), (0, 12), "->"),
+        
+        // --- Global Interpretability ---
+        node((0, 12), [*Global Interpretability Analysis* \ (Shapley Values / SHAP)], shape: rect, fill: rgb("eeeeee"), stroke: 1.2pt)
+      )
+    )
+  ]
+)
+#set text(font: "Linux Libertine", size: 12pt)
 \
 We used a Histogram-based Gradient Boosting Classifier from the scikit-learn package to serve as our classical baseline. It is based on the Gradient Boosting Classifier, which was chosen because of its high accuracy and performance on similar datasets in the medical field. @gradientboostsarebetter The Histogram-based version of the model was chosen for its performance on large datasets. @histgradboostsbetter\
 \

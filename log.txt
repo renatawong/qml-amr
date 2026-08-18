@@ -334,6 +334,10 @@ From this data, we can get the following metrics: (classical_ml_data_validation.
   quantum random forest model?
   try different feature maps, ansatz
     try more qubits on the big machine?
+ Make figure showing data preprocessing, model training, results processing
+ Why choose these features?
+
+
 
 ==== ATTENDANCE LOG ====
  21 Jul (Tu) - 12:14-18:20
