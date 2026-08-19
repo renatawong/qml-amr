@@ -23,8 +23,6 @@ Applying Shapley values to QML models has some precedent in other applications i
 = Methods
 Several features were extracted from the raw dataset. They are Area Deprivation Index (ADI), Age, Gender, time (days) since last nursing home visit, time (days) since last dose of antibiotic, most recent procedure, time (days) since most recent procedure, the type of ward the patient was seen in, and a list of all comorbities each patient had. This totalled 520 features. These features were chosen to train models that could be effective given minimally expensive information, not requiring microbiology testing or body sample collection. The dataset was then segregated by antibiotic, and only those antibiotics with subjects between 4500 and 15000 subjects were used (for a total of 9 antibiotics), balancing generalizability and size so training could be completed in a reasonable amount of time. \
 
-// Multi-Antibiotic Machine Learning Pipeline Diagram (Centered, Compact & Non-Overflowing)
-// Requires: #import "@preview/fletcher:0.5.8": diagram, node, edge
 
 #import "@preview/fletcher:0.5.8": diagram, node, edge
 
